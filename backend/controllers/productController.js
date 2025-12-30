@@ -11,6 +11,11 @@ const getProducts = async (req, res) => {
         }
     } : {};
 
+    // Add Category Filter
+    if (req.query.category) {
+        keyword.category = req.query.category;
+    }
+
     const products = await Product.find({ ...keyword, isDeleted: false });
     res.json(products);
 };
@@ -104,11 +109,21 @@ const getDeletedProducts = async (req, res) => {
     res.json(products);
 };
 
+// @desc    Get unique product categories
+// @route   GET /api/products/categories
+// @access  Public
+const getCategories = async (req, res) => {
+    const categories = await Product.distinct('category');
+    res.json(categories);
+};
+
 module.exports = {
     getProducts,
     getProductById,
     deleteProduct,
     createProduct,
+    createProduct,
     updateProduct,
-    getDeletedProducts
+    getDeletedProducts,
+    getCategories
 };
