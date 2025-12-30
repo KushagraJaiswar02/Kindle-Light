@@ -66,6 +66,8 @@ const Header = () => {
                         {navLinks.map((link) => {
                             if (link.auth && !user) return null;
                             if (link.admin && (!user || !user.isAdmin)) return null;
+                            // Hide Profile link for Admin users
+                            if (link.path === '/profile' && user && user.isAdmin) return null;
 
                             return (
                                 <NavLink key={link.path} to={link.path} className={({ isActive }) => `px-3 py-2 font-medium transition duration-200 rounded-md relative ${isActive ? 'text-flame font-bold' : 'text-charcoal hover:text-flame'}`}>
@@ -149,6 +151,8 @@ const Header = () => {
                             {navLinks.map((link) => {
                                 if (link.auth && !user) return null;
                                 if (link.admin && (!user || !user.isAdmin)) return null;
+                                // Hide Profile link for Admin users
+                                if (link.path === '/profile' && user && user.isAdmin) return null;
                                 return (
                                     <Link key={link.path} to={link.path} className="block px-3 py-2 text-charcoal hover:bg-beige rounded-md font-medium" onClick={() => setIsOpen(false)}>{link.label}</Link>
                                 );
