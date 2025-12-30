@@ -2,7 +2,7 @@
 
 ## 🌟 Project Overview
 
-This project involves creating a modern, responsive, and secure e-commerce platform dedicated to "CandlesWithKinzee". It is a specialized, single-vendor online store designed for a specific artisan to sell their handcrafted candles. The goal is to migrate the business from an Instagram-only presence to a professional, scalable website, providing a smooth, aesthetic shopping experience.
+This project involves creating a modern, responsive, and secure e-commerce platform dedicated to selling handcrafted candles. [cite_start]The goal is to migrate the client's business from an Instagram-only presence to a professional, scalable website, providing a smooth, aesthetic shopping experience similar in structure and flow to platforms like Flipkart[cite: 3, 5, 8].
 
 The design emphasizes a **minimalist and elegant candle-themed aesthetic** with a consistent warm color palette.
 
@@ -96,27 +96,5 @@ npm install
 
 ```bash
 npm run dev
-# The app will likely run on http://localhost:5173
-```
-
-### 3. Usage
-
-1.  Ensure backend is running (Port 5001).
-2.  Ensure frontend is running (Port 5173).
-3.  Open your browser to the frontend URL.
-4.  **Admin Access:** The default seeder creates an admin user (check `backend/data/users.js` for credentials/logic, usually `admin@example.com` / `123456`).
-
----
-
-## 🔒 Security Measures
-
-*   **Secure Authentication:** JWT-based stateless authentication.
-*   **Password Hashing:** Bcrypt for secure password storage.
-*   **Protected Routes:** Middleware to restrict access to authorized users/admins.
-*   **Data Validation:** Backend validation for critical inputs.
-
----
-
-## 🤝 Contribution
-
-Feel free to fork this repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
+# or
+yarn dev
