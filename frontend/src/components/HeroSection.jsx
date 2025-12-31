@@ -13,7 +13,7 @@ export default function HeroSection() {
             />
 
             <div className="relative z-10 text-center p-6 max-w-4xl">
-                <motion.h2 
+                <motion.h2
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -21,7 +21,7 @@ export default function HeroSection() {
                 >
                     Handcrafted Comfort.
                 </motion.h2>
-                <motion.p 
+                <motion.p
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
@@ -30,11 +30,15 @@ export default function HeroSection() {
                     Experience the pure glow of artisanal candles, ethically made for your home.
                 </motion.p>
                 <motion.button
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ scale: 0.8, opacity: 0, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.6 }}
-                    className="bg-flame text-charcoal font-bold py-3 px-10 rounded-full shadow-2xl transition duration-300 hover:bg-primary text-lg"
-                    whileHover={{ scale: 1.08, boxShadow: "0 8px 20px rgba(255, 159, 28, 0.6)" }}
+                    className="bg-flame text-charcoal font-bold py-3 px-10 rounded-full text-lg"
+                    whileHover={{
+                        scale: 1.08,
+                        boxShadow: "0 8px 20px rgba(255, 159, 28, 0.6)",
+                        backgroundColor: "#F5C76B"
+                    }}
                     whileTap={{ scale: 0.95 }}
                 >
                     Explore Scents
