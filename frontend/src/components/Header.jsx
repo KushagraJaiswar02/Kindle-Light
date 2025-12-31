@@ -7,6 +7,8 @@ import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useCart } from '../context/CartContext';
 
+import candleLogo from '../assets/CANDLE.png';
+
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -37,7 +39,6 @@ const Header = () => {
     const navLinks = [
         { path: '/', label: 'Home' },
         { path: '/shop', label: 'Shop' },
-        { path: '/profile', label: 'Profile', auth: true },
         { path: '/admin', label: 'Admin', admin: true },
     ];
 
@@ -56,8 +57,14 @@ const Header = () => {
             <div className="container mx-auto flex justify-between items-center">
 
                 {/* 1. Logo */}
-                <Link to="/" className="group z-50">
-                    <span className={`text-2xl md:text-3xl font-serif font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-brown' : 'text-white'}`}>
+                <Link to="/" className="group z-50 flex items-center gap-3">
+                    {/* Logo: Invert brightness when not scrolled (to make it white), standard when scrolled (dark) */}
+                    <img
+                        src={candleLogo}
+                        alt="CandlesWithKinzee"
+                        className={`h-9 w-9 rounded-full object-cover transition-all duration-300 ${!scrolled ? 'brightness-0 invert' : ''}`}
+                    />
+                    <span className={`text-xl md:text-2xl font-serif font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-brown' : 'text-white'}`}>
                         CandlesWith<span className="font-light">Kinzee</span>
                     </span>
                 </Link>
@@ -110,8 +117,9 @@ const Header = () => {
                         <div className="flex items-center space-x-4">
                             {/* Profile Link (Icon Only) - Hide for Admin */}
                             {/* Profile Link (Icon Only) */}
-                            <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
+                            <Link to="/profile" className={`flex items-center gap-2 transition-colors group ${hoverColorClass}`} title="My Profile">
                                 <UserIcon />
+                                <span className="font-medium text-sm hidden sm:block">Welcome {user.name}!</span>
                             </Link>
 
                             {/* Separator - Hide if Admin (since Profile is gone) */}

@@ -1,4 +1,4 @@
-import React from 'react';
+import candleLogo from '../assets/CANDLE.png';
 
 export default function Footer() {
     return (
@@ -33,8 +33,13 @@ export default function Footer() {
                         </ul>
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                        <h4 className="text-primary font-bold mb-4 border-b border-shadow/50 pb-1">The Glow Newsletter</h4>
-                        <p className="text-sm mb-4">Sign up for exclusive offers and updates on new limited-edition scents.</p>
+                        {/* Brand Logo Block */}
+                        <div className="mb-6 flex items-center gap-3">
+                            <img src={candleLogo} alt="Logo" className="h-10 w-10 rounded-full object-cover brightness-0 invert opacity-90" />
+                            <span className="text-xl font-serif font-bold text-white tracking-tight">CandlesWithKinzee</span>
+                        </div>
+
+                        <p className="text-sm mb-4 text-beige/80">Sign up for exclusive offers and updates on new limited-edition scents.</p>
                         <div className="mt-3 flex shadow-lg rounded-lg overflow-hidden">
                             <input
                                 type="email"
@@ -56,8 +61,9 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="pt-8 border-t border-shadow/30 text-center text-sm text-beige/60">
-                    <p>&copy; {new Date().getFullYear()} GLOW. Handcrafted Comfort. | E-Commerce Platform.</p>
+                <div className="pt-8 border-t border-shadow/30 text-center text-sm text-beige/60 flex flex-col md:flex-row justify-center items-center gap-2">
+                    <img src={candleLogo} alt="Logo" className="h-6 w-6 rounded-full object-cover brightness-0 invert opacity-50" />
+                    <p>&copy; {new Date().getFullYear()} CandlesWithKinzee. Handcrafted Comfort.</p>
                 </div>
             </div>
         </footer>
