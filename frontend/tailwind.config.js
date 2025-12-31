@@ -14,6 +14,10 @@ module.exports = {
         flicker: '#FFD6C0',    // subtle hover / tags
         shadow: '#B0A6A1',     // muted borders / dividers
       },
+      fontFamily: {
+        serif: ['"Playfair Display"', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],

@@ -57,128 +57,125 @@ const ProductListingPage = () => {
 
 
     return (
-        <div className="bg-beige min-h-screen">
+
+        <div className="bg-white min-h-screen">
             <SEO
                 title="Shop All Candles"
                 description="Browse our wide selection of candles including aromatherapy, soy wax, pillar, and more."
                 keywords="buy candles, shop candles, candle store, online candle shop"
             />
-            <div className="container mx-auto px-4 py-8">
 
-                <motion.h1
-                    className="text-4xl font-extrabold text-brown mb-6 text-center md:text-left"
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.5 }}
+            {/* 1. Collection Hero - Minimalist & Centered */}
+            <div className="bg-beige pt-32 pb-16 md:pt-40 md:pb-20 px-4 text-center">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
                 >
-                    Our Candle Collection 🕯️
-                </motion.h1>
+                    <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3">Hand-Poured in small batches</p>
+                    <h1 className="text-4xl md:text-5xl font-serif font-medium text-charcoal mb-4">The Collection</h1>
+                    <p className="text-brown/70 max-w-lg mx-auto font-light">
+                        Discover scents designed to elevate your sanctuary. 100% soy wax, clean burning, and sustainably crafted.
+                    </p>
+                </motion.div>
+            </div>
 
-                <div className="flex flex-col md:flex-row gap-6 relative">
+            <div className="container mx-auto px-4 py-12 md:py-16">
+                <div className="flex flex-col md:flex-row gap-8 lg:gap-16 items-start">
 
-                    <AnimatePresence>
-                        {filterOpen && (
-                            <motion.aside
-                                className="w-full md:w-1/4 bg-white p-6 rounded-xl shadow-2xl border border-shadow/50 absolute md:relative top-0 left-0 h-full md:h-auto z-40"
-                                variants={sidebarVariants}
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
-                            >
+                    {/* 2. Standard E-commerce Sticky Sidebar (Desktop) / Mobile Drawer Toggle */}
+                    {/* Mobile Toggle */}
+                    <div className="md:hidden w-full flex justify-between items-center mb-6 border-b border-neutral-200 pb-4">
+                        <button
+                            onClick={() => setFilterOpen(true)}
+                            className="flex items-center text-sm font-medium text-charcoal uppercase tracking-wider"
+                        >
+                            <span className="mr-2">+</span> Filters
+                        </button>
+                        <span className="text-sm text-brown/60">{products.length} Products</span>
+                    </div>
 
-                                <div className="flex justify-between items-center mb-4 border-b pb-3 border-shadow/50">
-                                    <h2 className="text-xl font-bold text-charcoal">Filter Options</h2>
-                                    <button
-                                        className="p-1 text-brown hover:text-flame transition"
-                                        onClick={() => setFilterOpen(false)}
-                                        title="Close Filters"
-                                    >
-                                        <XIcon />
-                                    </button>
-                                </div>
+                    {/* Sidebar */}
+                    <aside className={`fixed inset-0 z-50 bg-white p-6 transition-transform duration-300 transform ${filterOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:inset-auto md:w-64 md:block md:bg-transparent md:p-0 md:shadow-none md:z-10 md:sticky md:top-32`}>
+                        {/* Mobile Close Button */}
+                        <div className="flex justify-between items-center mb-8 md:hidden">
+                            <span className="font-serif text-xl">Filters</span>
+                            <button onClick={() => setFilterOpen(false)}><XIcon /></button>
+                        </div>
 
-                                {/* Filter content (unchanged) */}
-                                <div className="mb-6 pb-4 border-b border-shadow">
-                                    <h3 className="font-semibold text-brown mb-2">Price Range</h3>
-                                    <input type="range" min="10" max="50" className="w-full h-2 bg-beige rounded-lg appearance-none cursor-pointer range-lg accent-flame" />
-                                    <div className="flex justify-between text-sm text-shadow mt-1"><span>$10</span><span>$50</span></div>
-                                </div>
-
-                                <div className="mb-6 pb-4 border-b border-shadow">
-                                    <h3 className="font-semibold text-brown mb-2">Candle Type</h3>
-                                    {['Soy Wax', 'Aromatherapy', 'Pillar', 'Votive', 'Seasonal'].map(type => (
-                                        <label key={type} className="flex items-center text-charcoal text-sm mt-2 cursor-pointer hover:text-flame">
-                                            <input type="checkbox" className="mr-2 rounded text-primary focus:ring-primary border-shadow" />
-                                            {type}
-                                        </label>
+                        <div className="space-y-10">
+                            {/* Categories */}
+                            <div>
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-charcoal mb-4">Category</h3>
+                                <ul className="space-y-3">
+                                    {['Shop All', 'Aromatherapy', 'Soy Wax', 'Pillar', 'Votive'].map((item, i) => (
+                                        <li key={item}>
+                                            <a href="#" className={`text-sm hover:text-primary transition-colors ${i === 0 ? 'text-charcoal font-medium border-b border-primary pb-0.5' : 'text-brown/70'}`}>
+                                                {item}
+                                            </a>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
+                            </div>
 
-                                <div className="mb-4">
-                                    <h3 className="font-semibold text-brown mb-2">Customer Rating</h3>
-                                    <label className="flex items-center text-charcoal text-sm mt-2 cursor-pointer hover:text-flame">
-                                        <input type="radio" name="rating" className="mr-2 text-primary focus:ring-primary border-shadow" />
-                                        4 Stars & Up
+                            {/* Price */}
+                            <div>
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-charcoal mb-4">Price</h3>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm text-brown/70 hover:text-charcoal cursor-pointer">
+                                        <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary" />
+                                        <span>Under $25</span>
                                     </label>
-                                    <label className="flex items-center text-charcoal text-sm mt-2 cursor-pointer hover:text-flame">
-                                        <input type="radio" name="rating" className="mr-2 text-primary focus:ring-primary border-shadow" />
-                                        3 Stars & Up
+                                    <label className="flex items-center gap-2 text-sm text-brown/70 hover:text-charcoal cursor-pointer">
+                                        <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary" />
+                                        <span>$25 - $50</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-brown/70 hover:text-charcoal cursor-pointer">
+                                        <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary" />
+                                        <span>$50 +</span>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+                    </aside>
 
-                                <button className="w-full mt-4 py-2 bg-flame text-white font-semibold rounded-lg hover:bg-brown transition">
-                                    Apply Filters
-                                </button>
-                            </motion.aside>
-                        )}
-                    </AnimatePresence>
+                    {/* Overlay for Mobile Sidebar */}
+                    {filterOpen && (
+                        <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setFilterOpen(false)}></div>
+                    )}
 
-                    {/* Product Grid Area */}
-                    <main className={mainContentClass}>
-                        <div className="flex justify-between items-center bg-white p-3 mb-4 rounded-lg shadow-sm border border-shadow/50">
-
-                            {!filterOpen && (
-                                <button
-                                    className="flex items-center py-2 px-4 bg-primary text-charcoal rounded-lg font-medium hover:bg-flame hover:text-white transition"
-                                    onClick={() => setFilterOpen(true)}
-                                >
-                                    <FilterIcon /> <span className="ml-2">Filter</span>
-                                </button>
-                            )}
-
-                            <h3 className="text-charcoal font-medium">
-                                Showing {products.length} Results
-                            </h3>
-
-                            <div className="flex items-center space-x-2">
-                                <label htmlFor="sort" className="text-charcoal text-sm hidden sm:block">Sort By:</label>
-                                <select id="sort" className="p-2 border border-shadow rounded-lg bg-white text-charcoal text-sm focus:ring-primary focus:border-primary">
-                                    <option>Popularity</option>
+                    {/* 3. Product Grid */}
+                    <main className="flex-1">
+                        {/* Sort Bar (Desktop Only - Mobile usually hides or combines) */}
+                        <div className="hidden md:flex justify-between items-center mb-8">
+                            <span className="text-sm text-brown/60">{products.length} Results</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-brown/60">Sort by:</span>
+                                <select className="text-sm bg-transparent border-none focus:ring-0 text-charcoal font-medium cursor-pointer">
+                                    <option>Best Selling</option>
+                                    <option>Newest</option>
                                     <option>Price: Low to High</option>
-                                    <option>Price: High to Low</option>
-                                    <option>Newest Arrivals</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* PRODUCT GRID CHANGE: Reverted to a less dense grid for medium-sized cards */}
                         <motion.div
-                            // Mobile/Small: 2 columns
-                            // Medium: 3 columns (regardless of filter state)
-                            // Large (Filter Open): 3 columns
-                            // Large (Filter Closed): 4 columns max
-                            className={`grid grid-cols-2 md:grid-cols-3 ${filterOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4 sm:gap-6`}
+                            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-x-6 gap-y-12 md:gap-x-8 md:gap-y-16"
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
                         >
-                            {products.map(product => (
+                            {products.length > 0 ? products.map(product => (
                                 <motion.div key={product._id} variants={itemVariants}>
                                     <Link to={`/product/${product._id}`}>
                                         <ProductCard product={product} />
                                     </Link>
                                 </motion.div>
-                            ))}
+                            )) : (
+                                <div className="col-span-full py-20 text-center text-brown/50">
+                                    Loading products...
+                                </div>
+                            )}
                         </motion.div>
                     </main>
                 </div>

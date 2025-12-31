@@ -44,48 +44,59 @@ export default function ProductCard({ product }) {
 
     return (
         <motion.div
-            className="bg-white rounded-xl shadow-lg overflow-hidden border border-shadow/50 transform transition duration-500 hover:shadow-2xl cursor-pointer"
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            className="group cursor-pointer"
+            initial="idle"
+            whileHover="hover"
         >
-            <div className="relative">
+            {/* Image Container - Taller Aspect Ratio (3:4) & Image-First */}
+            <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 mb-5 relative rounded-sm">
                 <img
                     src={imageUrl}
                     alt={product?.name}
-                    // KEY CHANGE: Reduced height further from h-56 to h-48
-                    className="w-full h-48 object-cover object-center transition duration-300 group-hover:opacity-90"
-                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/350x350/8B5E3C/FFF7E6?text=Candle+Image" }}
+                    className="w-full h-full object-cover transition duration-700 ease-in-out group-hover:scale-105"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/350x450/E5E5E5/A3A3A3?text=Kinzee"; }}
                 />
+
+                {/* Floating Action (Top Right) */}
                 <motion.button
-                    className="absolute top-3 right-3 bg-primary/90 p-2 rounded-full shadow-md backdrop-blur-sm"
-                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full text-charcoal opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white"
                     whileTap={{ scale: 0.9 }}
-                    title="Quick View"
-                    onClick={(e) => { e.stopPropagation(); console.log('Quick view for:', product?.name); }}
+                    onClick={(e) => { e.stopPropagation(); console.log('Quick view'); }}
                 >
-                    <SparkleIcon className="w-4 h-4 text-charcoal" />
+                    <SparkleIcon className="w-5 h-5 opacity-70" />
                 </motion.button>
-            </div>
 
-            {/* Padding remains compact (p-4) */}
-            <div className="p-4 text-center">
-                <h3 className="text-lg font-semibold text-brown mb-0.5 hover:text-flame transition duration-200">{product?.name}</h3>
-                <p className="text-charcoal/70 mb-2 text-xs italic">{product?.scent}</p>
-
-                {/* Rating Section */}
-                <div className="flex justify-center mb-3">{renderStars(product?.rating)}</div>
-
-                <div className="flex justify-between items-center pt-3 border-t border-shadow/30">
-                    {/* Slightly reduced text size for price (text-lg instead of text-xl) for better compactness */}
-                    <span className="text-lg font-extrabold text-charcoal">${product?.price ? product.price.toFixed(2) : 'N/A'}</span>
-                    <motion.button
-                        className="bg-flame text-white font-medium py-1.5 px-3 rounded-full text-sm shadow-md transition duration-300 hover:bg-brown"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => { e.stopPropagation(); console.log('Added to cart:', product?.name); }}
+                {/* Slide-Up Add to Cart (Minimalist) */}
+                <motion.div
+                    variants={{
+                        idle: { y: "101%" },
+                        hover: { y: 0 }
+                    }}
+                    transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+                    className="absolute bottom-0 left-0 w-full"
+                >
+                    <button
+                        className="w-full bg-charcoal text-white font-medium py-4 text-xs uppercase tracking-widest hover:bg-black transition-colors"
+                        onClick={(e) => { e.stopPropagation(); console.log('Added to cart'); }}
                     >
                         Add to Cart
-                    </motion.button>
+                    </button>
+                </motion.div>
+            </div>
+
+            {/* Minimalist Details Below */}
+            <div className="text-center space-y-1">
+                <h3 className="text-lg font-serif text-charcoal tracking-tight group-hover:text-primary transition-colors duration-300">
+                    {product?.name}
+                </h3>
+                <div className="flex items-center justify-center gap-2 text-sm">
+                    <span className="text-brown/60 font-medium">${product?.price ? product.price.toFixed(2) : '24.00'}</span>
+                    {/* Optional Rating if desired, keeping it minimal for now */}
+                    {product?.rating > 0 && (
+                        <span className="flex items-center text-xs text-flame">
+                            <span className="mr-0.5">★</span> {product.rating}
+                        </span>
+                    )}
                 </div>
             </div>
         </motion.div>

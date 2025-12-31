@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll } from 'framer-motion';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -10,14 +10,14 @@ const Header = () => {
     const { user, logout } = React.useContext(AuthContext);
     const { addToast } = useToast();
 
-    // Scroll detection for Glassmorphism
+    const { scrollY } = useScroll();
+
+    // Optimized scroll detection
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        return scrollY.onChange((latest) => {
+            setScrolled(latest > 20);
+        });
+    }, [scrollY]);
 
     // Placeholder Icons (for visual structure without external libraries)
     const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>;
@@ -40,7 +40,7 @@ const Header = () => {
 
     return (
         <motion.header
-            className={`sticky top-0 z-50 transition-all duration-300 border-b ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg border-shadow/30' : 'bg-white shadow-md border-shadow/50'}`}
+            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'}`}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
