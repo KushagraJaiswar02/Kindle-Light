@@ -67,7 +67,9 @@ const Header = () => {
                     {navLinks.map((link) => {
                         if (link.auth && !user) return null;
                         if (link.admin && (!user || !user.isAdmin)) return null;
-                        if (link.path === '/profile' && user && user.isAdmin) return null;
+                        // Actually, I'll allow it for mobile menu visibility logic or just rely on the UserIcon for desktop.
+                        // The loop maps navLinks. Let's check navLinks definition.
+
 
                         return (
                             <NavLink
@@ -107,16 +109,14 @@ const Header = () => {
                     {user ? (
                         <div className="flex items-center space-x-4">
                             {/* Profile Link (Icon Only) - Hide for Admin */}
-                            {!user.isAdmin && (
-                                <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
-                                    <UserIcon />
-                                </Link>
-                            )}
+                            {/* Profile Link (Icon Only) */}
+                            <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
+                                <UserIcon />
+                            </Link>
 
                             {/* Separator - Hide if Admin (since Profile is gone) */}
-                            {!user.isAdmin && (
-                                <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
-                            )}
+                            {/* Separator */}
+                            <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
 
                             {/* Logout */}
                             <button onClick={handleLogout} className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="Logout">

@@ -65,11 +65,55 @@ const getUserProfile = async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
-            isAdmin: user.isAdmin
+            isAdmin: user.isAdmin,
+            phoneNumber: user.phoneNumber,
+            addresses: user.addresses,
+            paymentMethods: user.paymentMethods
         });
     } else {
         res.status(404).json({ message: 'User not found' });
     }
 };
 
-module.exports = { registerUser, loginUser, getUserProfile };
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        user.phoneNumber = req.body.phoneNumber || user.phoneNumber; // Allow update
+
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        // For Arrays, we can replace the entire array if provided (simplest for React state management)
+        if (req.body.addresses) {
+            user.addresses = req.body.addresses;
+        }
+
+        if (req.body.paymentMethods) {
+            user.paymentMethods = req.body.paymentMethods;
+        }
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            isAdmin: updatedUser.isAdmin,
+            phoneNumber: updatedUser.phoneNumber,
+            addresses: updatedUser.addresses,
+            paymentMethods: updatedUser.paymentMethods,
+            token: generateToken(updatedUser._id)
+        });
+    } else {
+        res.status(404).json({ message: 'User not found' });
+    }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile };

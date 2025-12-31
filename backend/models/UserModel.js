@@ -6,7 +6,21 @@ const userSchema = mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     isAdmin: { type: Boolean, required: true, default: false },
-    role: { type: String, default: 'Customer' } // Optional explicit role
+    role: { type: String, default: 'Customer' },
+    phoneNumber: { type: String },
+    addresses: [{
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        postalCode: { type: String, required: true },
+        country: { type: String, required: true }
+    }],
+    paymentMethods: [{
+        cardType: { type: String, required: true },
+        last4: { type: String, required: true },
+        expiryDate: { type: String, required: true },
+        holderName: { type: String, required: true },
+        encryptedData: { type: String, required: true } // Simulation string
+    }]
 }, {
     timestamps: true
 });

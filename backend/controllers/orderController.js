@@ -1,4 +1,5 @@
 const Product = require('../models/ProductModel'); // Import Product Model
+const Order = require('../models/OrderModel'); // Import Order Model
 
 // @desc    Create new order
 // @route   POST /api/orders
