@@ -33,7 +33,7 @@ const EditProductPage = () => {
                     setPrice(data.price);
                     setImage(data.image);
                     setCategory(data.category);
-                    setStock(data.stock);
+                    setStock(data.countInStock);
                     setDescription(data.description);
                 }
                 setLoading(false);
@@ -62,7 +62,7 @@ const EditProductPage = () => {
                     description,
                     image,
                     category,
-                    stock,
+                    countInStock: stock,
                 }),
             });
 

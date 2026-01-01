@@ -85,7 +85,7 @@ const AdminDashboard = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch('/api/orders/all', { headers: { Authorization: `Bearer ${user.token}` } });
+            const res = await fetch('/api/orders', { headers: { Authorization: `Bearer ${user.token}` } });
             const data = await res.json();
             setOrders(data);
         } catch (error) { console.error(error); }
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
 
             if (res.ok) {
                 addToast(editingProduct ? 'Product Updated' : 'Product Created', 'success');
-                setProductForm({ name: '', price: '', stock: '', category: '', description: '', image: '' });
+                setProductForm({ name: '', price: '', countInStock: '', category: '', description: '', image: '' });
                 setEditingProduct(null);
                 fetchProducts();
             } else {
@@ -150,6 +150,28 @@ const AdminDashboard = () => {
                 addToast('Product moved to history', 'success');
                 fetchProducts();
                 // Optionally refetch history if we were finding a way to update counts
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    const handleStatusUpdate = async (id, status) => {
+        if (!window.confirm(`Update order status to "${status}"?`)) return;
+        try {
+            const res = await fetch(`/api/orders/${id}/deliver`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`
+                },
+                body: JSON.stringify({ status })
+            });
+
+            if (res.ok) {
+                addToast(`Order updated to ${status}`, 'success');
+                fetchOrders();
+            } else {
+                const data = await res.json();
+                addToast(data.message || 'Operation failed', 'error');
             }
         } catch (error) { console.error(error); }
     };
@@ -258,7 +280,7 @@ const AdminDashboard = () => {
                             {editingProduct ? 'Update Product' : 'Add Product'}
                         </button>
                         {editingProduct && (
-                            <button type="button" onClick={() => { setEditingProduct(null); setProductForm({ name: '', price: '', stock: '', category: '', description: '', image: '' }); }} className="py-3 px-6 bg-gray-300 text-charcoal font-bold rounded-lg hover:bg-gray-400 transition">
+                            <button type="button" onClick={() => { setEditingProduct(null); setProductForm({ name: '', price: '', countInStock: '', category: '', description: '', image: '' }); }} className="py-3 px-6 bg-gray-300 text-charcoal font-bold rounded-lg hover:bg-gray-400 transition">
                                 Cancel
                             </button>
                         )}
@@ -337,7 +359,7 @@ const AdminDashboard = () => {
                                     <td className="p-3 font-semibold text-charcoal">{product.name}</td>
                                     <td className="p-3 text-sm">{product.category}</td>
                                     <td className="p-3">${product.price.toFixed(2)}</td>
-                                    <td className="p-3">{product.stock}</td>
+                                    <td className="p-3">{product.countInStock}</td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.isDeleted ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>
                                             {product.isDeleted ? 'Deleted' : 'Active'}
@@ -356,9 +378,71 @@ const AdminDashboard = () => {
         <div className="space-y-6">
             <h2 className="text-3xl font-bold text-white">Orders</h2>
             {/* Placeholder for Orders implementation from previous steps - reusing basic structure */}
-            <div className="bg-white p-6 rounded-xl shadow-lg">
-                <p>Order management is implemented via API but simplified here.</p>
-                {/* Could iterate 'orders' state here just like products */}
+            <div className="bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="border-b border-shadow/30 text-charcoal/70 text-sm">
+                            <th className="p-3">Order ID</th>
+                            <th className="p-3">User</th>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Total</th>
+                            <th className="p-3">Paid</th>
+                            <th className="p-3">Delivered</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orders.map(order => (
+                            <tr key={order._id} className="border-b border-shadow/10 hover:bg-beige/30 transition">
+                                <td className="p-3 text-sm font-mono text-charcoal/70">{order._id}</td>
+                                <td className="p-3 font-semibold text-charcoal">{order.user ? order.user.name : 'Unknown User'}</td>
+                                <td className="p-3 text-sm">{order.createdAt.substring(0, 10)}</td>
+                                <td className="p-3 text-flame font-bold">${order.totalPrice.toFixed(2)}</td>
+                                <td className="p-3">
+                                    {order.isPaid ? (
+                                        <span className="text-green-600 bg-green-100 px-2 py-1 rounded text-xs font-bold">Paid</span>
+                                    ) : (
+                                        <span className="text-red-600 bg-red-100 px-2 py-1 rounded text-xs font-bold">Unpaid</span>
+                                    )}
+                                </td>
+                                <td className="p-3">
+                                    <div className="flex flex-col space-y-1">
+                                        {/* Status Display */}
+                                        <div className="mb-1 text-xs font-bold">
+                                            {order.isDelivered ? (
+                                                <span className="text-green-600">DELIVERED</span>
+                                            ) : (order.status === 'Out for Delivery') ? (
+                                                <span className="text-orange-500">OUT FOR DELIVERY</span>
+                                            ) : (
+                                                <span className="text-red-500">PENDING</span>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        {!order.isDelivered && (
+                                            <div className="flex space-x-2 text-[10px]">
+                                                {/* Only show 'Out for Delivery' if not already there */}
+                                                {order.status !== 'Out for Delivery' && (
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(order._id, 'Out for Delivery')}
+                                                        className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded hover:bg-yellow-200"
+                                                    >
+                                                        Mark Out
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleStatusUpdate(order._id, 'Delivered')}
+                                                    className="bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200"
+                                                >
+                                                    Mark Delivered
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
