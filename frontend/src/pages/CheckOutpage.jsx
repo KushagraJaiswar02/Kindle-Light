@@ -2,8 +2,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+
+import { Link, useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO.jsx';
+import { useCart } from '../context/CartContext';
+import AuthContext from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 // Placeholder Icons
 const LockIcon = () => '🔒'; // For security
@@ -13,12 +17,159 @@ const PaymentIcon = () => '💳'; // For payment
 const CheckoutPage = () => {
     // Simple state to simulate checkout steps
     const [currentStep, setCurrentStep] = useState(1);
+    const { cartItems, cartTotal, clearCart } = useCart();
+    const { user } = React.useContext(AuthContext);
+    const { addToast } = useToast();
+    const navigate = useNavigate();
 
-    // Dummy Order Summary Data (Ideally passed from CartPage or Context API)
-    const subtotal = 36.99;
-    const shipping = 5.00;
-    const taxes = subtotal * 0.08;
+    const [shippingAddress, setShippingAddress] = useState({
+        address: '',
+        city: '',
+        postalCode: '',
+        country: ''
+    });
+
+    // Sync variables from user profile when available
+    React.useEffect(() => {
+        if (user && user.addresses && user.addresses.length > 0) {
+            setShippingAddress(prev => ({
+                ...prev,
+                address: prev.address || user.addresses[0].street || '',
+                city: prev.city || user.addresses[0].city || '',
+                postalCode: prev.postalCode || user.addresses[0].postalCode || '',
+                country: prev.country || user.addresses[0].country || ''
+            }));
+        }
+    }, [user]);
+
+    const subtotal = cartTotal;
+    const shipping = 50.00;
+    const taxes = 0;
     const total = subtotal + shipping + taxes;
+
+    const handleAddressChange = (e) => {
+        setShippingAddress({ ...shippingAddress, [e.target.name]: e.target.value });
+    };
+
+    const handlePlaceOrder = async () => {
+        if (!user) {
+            addToast('Please login to place an order', 'error');
+            navigate('/login');
+            return;
+        }
+
+        try {
+            // OPTIONAL: Update User Profile with new address if desired
+            // The user requested to save the address to profile
+            try {
+                await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user.token}`
+                    },
+                    body: JSON.stringify({
+                        addresses: [{
+                            street: shippingAddress.address,
+                            city: shippingAddress.city,
+                            postalCode: shippingAddress.postalCode,
+                            country: shippingAddress.country
+                        }]
+                    })
+                });
+            } catch (profileErr) {
+                console.warn("Failed to auto-save address to profile", profileErr);
+            }
+
+            // 1. Create Order
+            const orderRes = await fetch('http://localhost:5001/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`
+                },
+                body: JSON.stringify({
+                    orderItems: cartItems.map((item) => ({
+                        product: item._id,
+                        name: item.name,
+                        image: item.image,
+                        price: item.price,
+                        quantity: item.quantity,
+                    })),
+                    shippingAddress,
+                    paymentMethod: 'Razorpay',
+                    itemsPrice: subtotal,
+                    taxPrice: taxes,
+                    shippingPrice: shipping,
+                    totalPrice: total
+                })
+            });
+
+            const order = await orderRes.json();
+            if (!orderRes.ok) throw new Error(order.message || 'Failed to create order');
+
+            // 2. Create Razorpay Order
+            const payRes = await fetch(`http://localhost:5001/api/orders/pay/${order._id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${user.token}`
+                }
+            });
+            const paymentData = await payRes.json();
+            if (!payRes.ok) throw new Error(paymentData.message || 'Failed to initiate payment');
+
+            // 3. Open Razorpay
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: paymentData.amount,
+                currency: "INR",
+                name: "CandlesWithKinzee",
+                description: `Order #${order._id}`,
+                order_id: paymentData.id,
+                handler: async function (response) {
+                    try {
+                        const verifyRes = await fetch('http://localhost:5001/api/orders/pay/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                order_id: order._id
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok) {
+                            addToast('Payment Successful! Order Placed.', 'success');
+                            clearCart();
+                            navigate('/profile');
+                        } else {
+                            addToast(verifyData.message || 'Payment Verification Failed', 'error');
+                        }
+                    } catch (err) {
+                        addToast('Verification Error: ' + err.message, 'error');
+                    }
+                },
+                prefill: {
+                    name: user.name,
+                    email: user.email,
+                },
+                theme: {
+                    color: "#D97706"
+                }
+            };
+
+            const rzp1 = new window.Razorpay(options);
+            rzp1.open();
+
+        } catch (error) {
+            console.error(error);
+            addToast(error.message, 'error');
+        }
+    };
 
     // Framer Motion variant for page entry
     const pageVariants = {
@@ -40,15 +191,39 @@ const CheckoutPage = () => {
             <h2 className="text-2xl font-bold text-brown flex items-center space-x-2">{LocationIcon()} <span>Shipping Address</span></h2>
             [cite_start]<p className="text-charcoal/70 text-sm">Location tracking helps with shipping estimation and address autofill[cite: 13].</p>
 
+            {/* Saved Addresses Selection */}
+            {user?.addresses?.length > 0 && (
+                <div className="grid grid-cols-1 gap-2 mb-4">
+                    <p className="text-sm font-bold text-charcoal">Saved Addresses:</p>
+                    {user.addresses.map((addr, idx) => (
+                        <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setShippingAddress({
+                                address: addr.street,
+                                city: addr.city,
+                                postalCode: addr.postalCode,
+                                country: addr.country
+                            })}
+                            className="text-left p-3 border border-shadow/50 rounded-lg hover:bg-beige transition text-xs flex justify-between items-center bg-white"
+                        >
+                            <span>{addr.street}, {addr.city}</span>
+                            <span className="text-flame font-bold">Use</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+
             <input type="text" placeholder="Full Name" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
-            <input type="text" placeholder="Address Line 1" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
-            <input type="text" placeholder="City" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
+            <input name="address" value={shippingAddress.address} onChange={handleAddressChange} type="text" placeholder="Address Line 1" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" required />
+            <input name="city" value={shippingAddress.city} onChange={handleAddressChange} type="text" placeholder="City" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" required />
             <div className="flex space-x-4">
-                <input type="text" placeholder="Zip/Postal Code" className="w-1/2 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
-                <input type="text" placeholder="Country" className="w-1/2 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
+                <input name="postalCode" value={shippingAddress.postalCode} onChange={handleAddressChange} type="text" placeholder="Zip/Postal Code" className="w-1/2 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" required />
+                <input name="country" value={shippingAddress.country} onChange={handleAddressChange} type="text" placeholder="Country" className="w-1/2 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" required />
             </div>
 
             <motion.button
+                type="button"
                 className="w-full py-3 bg-primary text-charcoal font-bold rounded-lg hover:bg-flame hover:text-white transition"
                 onClick={() => setCurrentStep(2)}
                 whileHover={{ scale: 1.01 }}
@@ -67,23 +242,24 @@ const CheckoutPage = () => {
             {/* Simulated Payment Gateway Form */}
             <div className="p-6 bg-beige rounded-lg border border-shadow space-y-4">
                 <p className="text-sm text-charcoal flex items-center">
-                    [cite_start]{LockIcon()} **Security is key.** User data is secured via payment encryption[cite: 37].
+                    [cite_start]{LockIcon()} **Security is key.** You will be redirected to Razorpay's secure payment gateway to complete your purchase.[cite: 37].
                 </p>
-                <input type="text" placeholder="Card Number" className="w-full p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
-                <div className="flex space-x-4">
-                    <input type="text" placeholder="MM/YY" className="w-1/3 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
-                    <input type="text" placeholder="CVC" className="w-1/3 p-3 border border-shadow rounded-lg focus:ring-primary focus:border-primary" />
+                <div className="flex items-center space-x-3 p-3 bg-white rounded border border-shadow/30">
+                    <span className="font-bold text-lg text-blue-800">Razorpay</span>
+                    <span className="text-sm text-gray-500">Secure Payment</span>
                 </div>
             </div>
 
             <div className="flex space-x-4">
                 <button
+                    type="button"
                     className="w-1/3 py-3 border border-brown text-brown font-bold rounded-lg hover:bg-beige transition"
                     onClick={() => setCurrentStep(1)}
                 >
                     &larr; Back to Shipping
                 </button>
                 <motion.button
+                    type="button"
                     className="w-2/3 py-3 bg-flame text-white font-bold rounded-lg hover:bg-brown transition"
                     onClick={() => setCurrentStep(3)}
                     whileHover={{ scale: 1.01 }}
@@ -104,13 +280,13 @@ const CheckoutPage = () => {
             <div className="grid md:grid-cols-2 gap-6">
                 <div className="p-4 bg-beige rounded-lg border border-shadow/50">
                     <h3 className="font-semibold text-brown mb-2">Shipping Details</h3>
-                    <p className="text-sm text-charcoal">Jane Doe</p>
-                    <p className="text-sm text-charcoal">123 Candlelight Lane, Cityville</p>
+                    <p className="text-sm text-charcoal">{user?.name}</p>
+                    <p className="text-sm text-charcoal">{shippingAddress.address}, {shippingAddress.city}, {shippingAddress.postalCode}, {shippingAddress.country}</p>
                     <button className="text-flame text-xs mt-1 hover:underline" onClick={() => setCurrentStep(1)}>Edit</button>
                 </div>
                 <div className="p-4 bg-beige rounded-lg border border-shadow/50">
                     <h3 className="font-semibold text-brown mb-2">Payment Details</h3>
-                    <p className="text-sm text-charcoal">Card ending in **** 4242</p>
+                    <p className="text-sm text-charcoal">Method: Razorpay Secure</p>
                     <button className="text-flame text-xs mt-1 hover:underline" onClick={() => setCurrentStep(2)}>Edit</button>
                 </div>
             </div>
@@ -120,7 +296,7 @@ const CheckoutPage = () => {
                 className="w-full py-4 bg-flame text-white font-extrabold text-xl rounded-lg shadow-xl hover:bg-brown transition"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => alert("Order Placed! Thank you.")}
+                onClick={handlePlaceOrder}
             >
                 Place Order (${total.toFixed(2)})
             </motion.button>

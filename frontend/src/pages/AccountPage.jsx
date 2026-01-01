@@ -158,6 +158,7 @@ const ProfilePage = () => {
             const data = await res.json();
             if (res.ok) {
                 setProfile(data);
+                updateUser(data); // Sync global user state
                 if (onSuccess) onSuccess();
             } else { addToast(data.message, 'error'); }
         } catch (e) { addToast(e.message, 'error'); }
@@ -322,17 +323,96 @@ const ProfilePage = () => {
     );
 
     // Default Order Component reuse (Simplified)
+    const handleRetryPayment = async (order) => {
+        try {
+            // 1. Create Razorpay Order (using existing backend order)
+            const payRes = await fetch(`/api/orders/pay/${order._id}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            });
+            const paymentData = await payRes.json();
+            if (!payRes.ok) throw new Error(paymentData.message || 'Failed to initiate payment');
+
+            // 2. Open Razorpay
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: paymentData.amount,
+                currency: "INR",
+                name: "CandlesWithKinzee",
+                description: `Retry Order #${order._id}`,
+                order_id: paymentData.id,
+                handler: async function (response) {
+                    try {
+                        const verifyRes = await fetch('/api/orders/pay/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.token}`
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                order_id: order._id
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok) {
+                            addToast('Payment Successful!', 'success');
+                            fetchOrders(); // Refresh order list
+                        } else {
+                            addToast(verifyData.message || 'Payment Verification Failed', 'error');
+                        }
+                    } catch (err) {
+                        addToast('Verification Error: ' + err.message, 'error');
+                    }
+                },
+                prefill: {
+                    name: user.name,
+                    email: user.email,
+                },
+                theme: {
+                    color: "#D97706"
+                }
+            };
+
+            const rzp1 = new window.Razorpay(options);
+            rzp1.open();
+
+        } catch (error) {
+            console.error(error);
+            addToast(error.message, 'error');
+        }
+    };
+
     const renderOrderHistory = () => (
         <div className="space-y-4">
             <h2 className="text-2xl font-bold text-charcoal">Recent Orders</h2>
             {orders.length === 0 ? <p>No orders found.</p> : orders.map(order => (
-                <div key={order._id} className="p-4 border rounded hover:bg-gray-50">
-                    <div className="flex justify-between">
-                        <span className="font-bold">ID: {order._id.substring(0, 10)}...</span>
-                        <span className={order.isPaid ? "text-green-600" : "text-red-500"}>{order.isPaid ? "Paid" : "Unpaid"}</span>
+                <div key={order._id} className="p-4 border rounded hover:bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
+                    <div>
+                        <div className="flex items-center space-x-2">
+                            <span className="font-bold">Order #{order._id.substring(order._id.length - 6)}</span>
+                            <span className="text-xs text-gray-400">({new Date(order.createdAt).toLocaleDateString()})</span>
+                        </div>
+                        <p className="text-sm">Total: <span className="font-semibold">${order.totalPrice.toFixed(2)}</span></p>
+                        <div className="flex space-x-2 mt-1 text-sm">
+                            <span className={`px-2 py-0.5 rounded ${order.isPaid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                                {order.isPaid ? "Paid" : "Unpaid"}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded ${order.isDelivered ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                                {order.isDelivered ? "Delivered" : (order.status || "Processing")}
+                            </span>
+                        </div>
                     </div>
-                    <p className="text-sm">Total: ${order.totalPrice.toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    {!order.isPaid && (
+                        <button
+                            onClick={() => handleRetryPayment(order)}
+                            className="bg-flame text-white px-4 py-2 rounded font-bold hover:bg-brown transition text-sm"
+                        >
+                            Pay Now
+                        </button>
+                    )}
                 </div>
             ))}
         </div>

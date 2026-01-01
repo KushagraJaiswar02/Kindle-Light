@@ -119,45 +119,40 @@ const Header = () => {
                     {/* User Section */}
                     {user ? (
                         <div className="flex items-center space-x-4">
-                            {/* Profile Link (Icon Only) - Hide for Admin */}
+                            {/* Profile Link: Show for everyone, but we use the enhanced UI from main */}
+                            <Link
+                                to="/profile"
+                                className={`flex items-center gap-3 transition-colors group ${hoverColorClass}`}
+                                title="My Profile"
+                            >
+                                <span className="font-medium text-sm hidden sm:block">Profile</span>
+                                {user.profileImage ? (
+                                    <img
+                                        src={user.profileImage}
+                                        alt={user.name}
+                                        className="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg shadow-sm">
+                                        👤
+                                    </div>
+                                )}
+                            </Link>
 
-                            {/* User Section */}
-{user ? (
-    <div className="flex items-center space-x-4">
-        {/* Profile Link: Show for everyone, but we use the enhanced UI from main */}
-        <Link 
-            to="/profile" 
-            className={`flex items-center gap-3 transition-colors group ${hoverColorClass}`} 
-            title="My Profile"
-        >
-            <span className="font-medium text-sm hidden sm:block">Profile</span>
-            {user.profileImage ? (
-                <img 
-                    src={user.profileImage} 
-                    alt={user.name} 
-                    className="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm" 
-                />
-            ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg shadow-sm">
-                    👤
-                </div>
-            )}
-        </Link>
+                            {/* Separator: Only hide if you specifically want it gone for Admins */}
+                            <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
 
-        {/* Separator: Only hide if you specifically want it gone for Admins */}
-        <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
+                            {/* Logout Button */}
+                            <button
+                                onClick={handleLogout}
+                                className={`flex items-center gap-2 transition-colors ${hoverColorClass}`}
+                                title="Logout"
+                            >
+                                <LogOutIcon />
+                            </button>
+                        </div>
+                    ) : (
 
-        {/* Logout Button */}
-        <button 
-            onClick={handleLogout} 
-            className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} 
-            title="Logout"
-        >
-            <LogOutIcon />
-        </button>
-    </div>
-) : (
-   
                         <Link to="/login">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}

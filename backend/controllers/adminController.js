@@ -6,13 +6,14 @@ const Product = require('../models/ProductModel');
 // @route   GET /api/admin/stats
 // @access  Private/Admin
 const getAdminStats = async (req, res) => {
-    const totalOrders = await Order.countDocuments();
+    const totalOrders = await Order.countDocuments(); // Count all attempts (or switch to isPaid: true if desired)
     const totalUsers = await User.countDocuments();
     const totalProducts = await Product.countDocuments();
-    const lowStockProducts = await Product.countDocuments({ stock: { $lt: 5 } });
+    const lowStockProducts = await Product.countDocuments({ countInStock: { $lt: 5 } });
 
-    const orders = await Order.find();
-    const totalRevenue = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
+    // Only calculate revenue for PAID orders
+    const paidOrders = await Order.find({ isPaid: true });
+    const totalRevenue = paidOrders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
     res.json({
         totalOrders,
