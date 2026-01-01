@@ -4,3 +4,7 @@ node_modules/
 backend/.env
 frontend/.env
 backend/uploads/
+=======
+backend/uploads/
+.env
+
