@@ -7,6 +7,8 @@ import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useCart } from '../context/CartContext';
 
+import candleLogo from '../assets/CANDLE.png';
+
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -39,7 +41,6 @@ const Header = () => {
     const navLinks = [
         { path: '/', label: 'Home' },
         { path: '/shop', label: 'Shop' },
-        { path: '/profile', label: 'Profile', auth: true },
         { path: '/admin', label: 'Admin', admin: true },
     ];
 
@@ -58,8 +59,14 @@ const Header = () => {
             <div className="container mx-auto flex justify-between items-center">
 
                 {/* 1. Logo */}
-                <Link to="/" className="group z-50">
-                    <span className={`text-2xl md:text-3xl font-serif font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-brown' : 'text-white'}`}>
+                <Link to="/" className="group z-50 flex items-center gap-3">
+                    {/* Logo: Invert brightness when not scrolled (to make it white), standard when scrolled (dark) */}
+                    <img
+                        src={candleLogo}
+                        alt="CandlesWithKinzee"
+                        className={`h-9 w-9 rounded-full object-cover transition-all duration-300 ${!scrolled ? 'brightness-0 invert' : ''}`}
+                    />
+                    <span className={`text-xl md:text-2xl font-serif font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-brown' : 'text-white'}`}>
                         CandlesWith<span className="font-light">Kinzee</span>
                     </span>
                 </Link>
@@ -113,21 +120,44 @@ const Header = () => {
                     {user ? (
                         <div className="flex items-center space-x-4">
                             {/* Profile Link (Icon Only) - Hide for Admin */}
-                            {!user.isAdmin && (
-                                <>
-                                    <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
-                                        <UserIcon />
-                                    </Link>
-                                    <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
-                                </>
-                            )}
 
-                            {/* Logout */}
-                            <button onClick={handleLogout} className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="Logout">
-                                <LogOutIcon />
-                            </button>
-                        </div>
-                    ) : (
+                            {/* User Section */}
+{user ? (
+    <div className="flex items-center space-x-4">
+        {/* Profile Link: Show for everyone, but we use the enhanced UI from main */}
+        <Link 
+            to="/profile" 
+            className={`flex items-center gap-3 transition-colors group ${hoverColorClass}`} 
+            title="My Profile"
+        >
+            <span className="font-medium text-sm hidden sm:block">Profile</span>
+            {user.profileImage ? (
+                <img 
+                    src={user.profileImage} 
+                    alt={user.name} 
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm" 
+                />
+            ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg shadow-sm">
+                    👤
+                </div>
+            )}
+        </Link>
+
+        {/* Separator: Only hide if you specifically want it gone for Admins */}
+        <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
+
+        {/* Logout Button */}
+        <button 
+            onClick={handleLogout} 
+            className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} 
+            title="Logout"
+        >
+            <LogOutIcon />
+        </button>
+    </div>
+) : (
+   
                         <Link to="/login">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}

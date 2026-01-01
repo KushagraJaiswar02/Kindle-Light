@@ -35,7 +35,7 @@ router.post('/', upload.single('image'), (req, res) => {
     // Normalize path separators to forward slashes for URL compatibility
     const normalizedPath = req.file.path.replace(/\\/g, '/');
     // Return full URL so frontend can display it easily across ports using proxy or direct access
-    res.send(`http://localhost:5001/${normalizedPath}`);
+    res.json({ image: `http://localhost:5001/${normalizedPath}` });
 });
 
 module.exports = router;

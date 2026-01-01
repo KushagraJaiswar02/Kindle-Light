@@ -390,9 +390,13 @@ const ProductDetailPage = () => {
                                 {product.reviews.map((review) => (
                                     <div key={review._id} className="border-b border-stone-200 pb-8 last:border-0 last:pb-0">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 bg-stone-200 rounded-full flex items-center justify-center text-charcoal font-bold text-xs uppercase">
-                                                {review.name.substring(0, 2)}
-                                            </div>
+                                            {review.user && review.user.profileImage ? (
+                                                <img src={review.user.profileImage} alt={review.name} className="w-10 h-10 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-10 h-10 bg-stone-200 rounded-full flex items-center justify-center text-charcoal font-bold text-xs uppercase">
+                                                    {review.name.substring(0, 2)}
+                                                </div>
+                                            )}
                                             <div>
                                                 <span className="block font-bold text-charcoal text-sm">{review.name}</span>
                                                 <span className="text-xs text-brown/50">{new Date(review.createdAt).toLocaleDateString()}</span>

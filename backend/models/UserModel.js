@@ -7,6 +7,7 @@ const userSchema = mongoose.Schema({
     password: { type: String, required: true },
     isAdmin: { type: Boolean, required: true, default: false },
     role: { type: String, default: 'Customer' },
+    profileImage: { type: String, default: '' },
     phoneNumber: { type: String },
     addresses: [{
         street: { type: String, required: true },

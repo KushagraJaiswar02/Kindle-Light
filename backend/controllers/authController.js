@@ -26,6 +26,7 @@ const registerUser = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            profileImage: user.profileImage,
             token: generateToken(user._id)
         });
     } else {
@@ -47,6 +48,7 @@ const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            profileImage: user.profileImage,
             token: generateToken(user._id)
         });
     } else {
@@ -66,6 +68,7 @@ const getUserProfile = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            profileImage: user.profileImage,
             phoneNumber: user.phoneNumber,
             addresses: user.addresses,
             paymentMethods: user.paymentMethods
@@ -90,6 +93,11 @@ const updateUserProfile = async (req, res) => {
             user.password = req.body.password;
         }
 
+        // Update profile image if provided
+        if (req.body.profileImage) {
+            user.profileImage = req.body.profileImage;
+        }
+
         // For Arrays, we can replace the entire array if provided (simplest for React state management)
         if (req.body.addresses) {
             user.addresses = req.body.addresses;
@@ -106,6 +114,7 @@ const updateUserProfile = async (req, res) => {
             name: updatedUser.name,
             email: updatedUser.email,
             isAdmin: updatedUser.isAdmin,
+            profileImage: updatedUser.profileImage,
             phoneNumber: updatedUser.phoneNumber,
             addresses: updatedUser.addresses,
             paymentMethods: updatedUser.paymentMethods,

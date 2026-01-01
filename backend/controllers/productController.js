@@ -36,7 +36,7 @@ const getProducts = async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Public
 const getProductById = async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('reviews.user', 'name profileImage');
 
     if (product) {
         res.json(product);

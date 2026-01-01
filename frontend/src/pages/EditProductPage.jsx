@@ -175,8 +175,8 @@ const EditProductPage = () => {
                                                     method: 'POST',
                                                     body: formData,
                                                 });
-                                                const data = await res.text();
-                                                setImage(data);
+                                                const data = await res.json();
+                                                setImage(data.image);
                                                 setUpdating(false);
                                                 addToast('Image Uploaded', 'success');
                                             } catch (error) {

@@ -11,7 +11,7 @@ const AddressIcon = () => '🏠';
 const SettingsIcon = () => '⚙️';
 
 const ProfilePage = () => {
-    const { user } = React.useContext(AuthContext); // Access AuthContext
+    const { user, updateUser } = React.useContext(AuthContext); // Access AuthContext
     const { addToast } = useToast();
     const [activeSection, setActiveSection] = useState('profile');
     const [profile, setProfile] = useState(null);
@@ -24,7 +24,7 @@ const ProfilePage = () => {
     const [addingCard, setAddingCard] = useState(false);
 
     // Form Data
-    const [profileForm, setProfileForm] = useState({ name: '', email: '', phoneNumber: '', password: '' });
+    const [profileForm, setProfileForm] = useState({ name: '', email: '', phoneNumber: '', password: '', profileImage: '' });
     const [addressForm, setAddressForm] = useState({ street: '', city: '', postalCode: '', country: '' });
     const [cardForm, setCardForm] = useState({ number: '', expiry: '', holderName: '', cvc: '' });
 
@@ -48,7 +48,7 @@ const ProfilePage = () => {
             });
             const data = await res.json();
             setProfile(data);
-            setProfileForm({ name: data.name, email: data.email, phoneNumber: data.phoneNumber || '', password: '' });
+            setProfileForm({ name: data.name, email: data.email, phoneNumber: data.phoneNumber || '', password: '', profileImage: data.profileImage || '' });
         } catch (error) { console.error(error); } finally { setLoading(false); }
     };
 
@@ -74,9 +74,34 @@ const ProfilePage = () => {
             if (res.ok) {
                 addToast('Profile Updated', 'success');
                 setProfile(data); // Immediate update
+                updateUser(data); // Update global user state for Header
                 setEditingProfile(false);
             } else { addToast(data.message, 'error'); }
         } catch (error) { addToast(error.message, 'error'); }
+    };
+
+    const uploadFileHandler = async (e) => {
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await res.text();
+
+            if (res.ok) {
+                setProfileForm({ ...profileForm, profileImage: data });
+                addToast('Image Uploaded', 'success');
+            } else {
+                addToast('Image upload failed', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            addToast('Image upload failed', 'error');
+        }
     };
 
     const handleAddAddress = async (e) => {
@@ -154,6 +179,22 @@ const ProfilePage = () => {
             <h2 className="text-2xl font-bold text-charcoal">Personal Information</h2>
             {editingProfile ? (
                 <form onSubmit={handleUpdateProfile} className="bg-beige p-6 rounded-lg space-y-4">
+                    <div className="flex justify-center mb-6">
+                        <div className="relative">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
+                                {profileForm.profileImage ? (
+                                    <img src={profileForm.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-4xl">👤</span>
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 bg-flame text-white hover:bg-brown p-2 rounded-full cursor-pointer shadow-md transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                <input type='file' onChange={uploadFileHandler} className="hidden" />
+                            </label>
+                        </div>
+                    </div>
+
                     <div><label className="block text-xs font-bold uppercase text-brown mb-1">Name</label>
                         <input className="w-full p-2 border rounded" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} /></div>
                     <div><label className="block text-xs font-bold uppercase text-brown mb-1">Email</label>
@@ -170,11 +211,20 @@ const ProfilePage = () => {
             ) : (
                 <div className="bg-white p-6 rounded-lg border border-neutral-200 shadow-sm relative">
                     <button onClick={() => setEditingProfile(true)} className="absolute top-4 right-4 text-sm text-blue-600 underline">Edit</button>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><p className="text-xs text-gray-500 uppercase">Name</p><p className="font-medium text-lg">{profile.name}</p></div>
-                        <div><p className="text-xs text-gray-500 uppercase">Email</p><p className="font-medium text-lg">{profile.email}</p></div>
-                        <div><p className="text-xs text-gray-500 uppercase">Phone</p><p className="font-medium text-lg">{profile.phoneNumber || 'Not provided'}</p></div>
-                        <div><p className="text-xs text-gray-500 uppercase">Member Since</p><p className="font-medium text-lg">{new Date(profile.createdAt).toLocaleDateString()}</p></div>
+                    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-beige shadow-md bg-gray-100 flex-shrink-0 flex items-center justify-center">
+                            {profile.profileImage ? (
+                                <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-4xl">👤</span>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-1 gap-6 w-full">
+                            <div><p className="text-xs text-gray-500 uppercase">Name</p><p className="font-medium text-lg">{profile.name}</p></div>
+                            <div><p className="text-xs text-gray-500 uppercase">Email</p><p className="font-medium text-lg">{profile.email}</p></div>
+                            <div><p className="text-xs text-gray-500 uppercase">Phone</p><p className="font-medium text-lg">{profile.phoneNumber || 'Not provided'}</p></div>
+                            <div><p className="text-xs text-gray-500 uppercase">Member Since</p><p className="font-medium text-lg">{new Date(profile.createdAt).toLocaleDateString()}</p></div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -325,13 +375,24 @@ const ProfilePage = () => {
             <SEO title="My Account" description="Manage your CandlesWithKinzee profile." />
             <div className="container mx-auto">
                 {/* ... Header ... */}
-                <h1 className="text-4xl font-extrabold text-brown mb-8 text-center md:text-left">
-                    My Account 👤
-                </h1>
+                <div className="flex items-center gap-4 mb-8 justify-center md:justify-start">
+                    {user.profileImage ? (
+                        <img src={user.profileImage} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-white" />
+                    ) : (
+                        <span className="text-5xl">👤</span>
+                    )}
+                    <h1 className="text-4xl font-extrabold text-brown">
+                        Welcome, {user.name}!
+                    </h1>
+                </div>
                 <div className="flex flex-col lg:flex-row gap-8">
                     <div className="lg:w-1/4 bg-white p-6 rounded-xl shadow-xl border border-shadow/50 h-fit">
                         <nav className="space-y-2">
-                            <NavButton section="profile" icon="👤" label="Profile Details" />
+                            <NavButton
+                                section="profile"
+                                icon={user.profileImage ? <img src={user.profileImage} alt="Profile" className="w-6 h-6 rounded-full object-cover" /> : "👤"}
+                                label="Profile Details"
+                            />
                             <NavButton section="addresses" icon="🏠" label="Address Book" />
                             <NavButton section="wallet" icon="💳" label="Wallet" />
                             <NavButton section="orders" icon="📦" label="My Orders" />
