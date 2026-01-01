@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
+import NotFound from '../pages/NotFound';
 import AuthContext from '../context/AuthContext';
 
 const AdminRoute = ({ children }) => {
@@ -13,7 +13,7 @@ const AdminRoute = ({ children }) => {
         return children;
     }
 
-    return <Navigate to="/login" />;
+    return <NotFound />;
 };
 
 export default AdminRoute;

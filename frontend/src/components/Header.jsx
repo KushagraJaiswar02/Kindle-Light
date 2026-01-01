@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -11,6 +11,7 @@ const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const { user, logout } = React.useContext(AuthContext);
+    const navigate = useNavigate();
     const { addToast } = useToast();
     const { cartCount } = useCart();
 
@@ -32,6 +33,7 @@ const Header = () => {
     const handleLogout = () => {
         logout();
         addToast('Logged out successfully', 'info');
+        navigate('/');
     };
 
     const navLinks = [
@@ -66,6 +68,8 @@ const Header = () => {
                 <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
                     {navLinks.map((link) => {
                         if (link.auth && !user) return null;
+                        // Hide Profile link for Admin
+                        if (link.path === '/profile' && user?.isAdmin) return null;
                         if (link.admin && (!user || !user.isAdmin)) return null;
                         // Actually, I'll allow it for mobile menu visibility logic or just rely on the UserIcon for desktop.
                         // The loop maps navLinks. Let's check navLinks definition.
@@ -93,8 +97,8 @@ const Header = () => {
                 {/* 3. Right Actions (Cart & User) */}
                 <div className={`hidden md:flex items-center space-x-6 z-50 ${textColorClass}`}>
 
-                    {/* Cart - Hide for Admin */}
-                    {!user?.isAdmin && (
+                    {/* Cart - Hide for Admin and Guests */}
+                    {user && !user.isAdmin && (
                         <Link to="/cart" className={`relative p-1 transition-colors ${hoverColorClass}`} title="Cart">
                             <ShoppingCartIcon />
                             {cartCount > 0 && (
@@ -109,14 +113,14 @@ const Header = () => {
                     {user ? (
                         <div className="flex items-center space-x-4">
                             {/* Profile Link (Icon Only) - Hide for Admin */}
-                            {/* Profile Link (Icon Only) */}
-                            <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
-                                <UserIcon />
-                            </Link>
-
-                            {/* Separator - Hide if Admin (since Profile is gone) */}
-                            {/* Separator */}
-                            <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
+                            {!user.isAdmin && (
+                                <>
+                                    <Link to="/profile" className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="My Profile">
+                                        <UserIcon />
+                                    </Link>
+                                    <div className={`h-4 w-px ${scrolled ? 'bg-charcoal/20' : 'bg-white/30'}`}></div>
+                                </>
+                            )}
 
                             {/* Logout */}
                             <button onClick={handleLogout} className={`flex items-center gap-2 transition-colors ${hoverColorClass}`} title="Logout">
